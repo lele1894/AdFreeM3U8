@@ -34,7 +34,7 @@ jobs:
         
     - name: Build with PyInstaller
       run: |
-        pyinstaller --onefile --icon=tb.ico --name="AdFreeM3U8_${{ github.event.inputs.tag_version }}" analyze_m3u8.py
+        pyinstaller --onefile --noconsole --icon=tb.ico --name="AdFreeM3U8_${{ github.event.inputs.tag_version }}" analyze_m3u8.py
         
     - name: Create Release
       run: |
