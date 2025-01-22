@@ -53,4 +53,3 @@ jobs:
         prerelease: false
         files: |
           dist/AdFreeM3U8_${{ github.event.inputs.tag_version }}.exe
-          requirements.txt 
