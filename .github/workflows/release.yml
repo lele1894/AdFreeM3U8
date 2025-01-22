@@ -1,0 +1,53 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_version:
+        description: '版本号 (例如: V1.0.0)'
+        required: true
+        default: 'V1.0.0'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        
+    - name: Build with PyInstaller
+      run: |
+        pyinstaller --onefile --icon=tb.png --name=AdFreeM3U8 analyze_m3u8.py
+        
+    - name: Create Release
+      run: |
+        git tag -d ${{ github.event.inputs.tag_version }} || true
+        git push origin :refs/tags/${{ github.event.inputs.tag_version }} || true
+        git tag ${{ github.event.inputs.tag_version }}
+        git push origin ${{ github.event.inputs.tag_version }} --force
+      shell: bash
+      
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.event.inputs.tag_version }}
+        name: Release ${{ github.event.inputs.tag_version }}
+        draft: false
+        prerelease: false
+        files: |
+          dist/AdFreeM3U8.exe
+          tb.png
+          LICENSE
+          README.md 
