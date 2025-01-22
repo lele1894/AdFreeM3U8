@@ -12,7 +12,7 @@ import tkinter as tk
 class M3u8DownloaderGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("M3U8下载器")
+        self.root.title("M3U8下载器-QQ:273356663")
         
         # 设置主题
         ctk.set_appearance_mode("dark")  # 暗色主题
