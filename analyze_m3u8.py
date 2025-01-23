@@ -71,8 +71,8 @@ class M3u8DownloaderGUI:
         path_label.grid(row=0, column=0, sticky="w")
         
         self.path_var = tk.StringVar(value="./downloads")  # 默认下载目录
-        self.path_entry = ctk.CTkEntry(second_frame, textvariable=self.path_var, width=500)
-        self.path_entry.grid(row=0, column=1, sticky="ew", padx=5)
+        self.path_entry = ctk.CTkEntry(second_frame, textvariable=self.path_var, width=300)
+        self.path_entry.grid(row=0, column=1, sticky="w", padx=5)
         
         self.path_btn = ctk.CTkButton(
             second_frame,
@@ -81,8 +81,28 @@ class M3u8DownloaderGUI:
             width=80
         )
         self.path_btn.grid(row=0, column=2, padx=5)
+
+        # 代理设置
+        # 代理启用复选框
+        self.use_proxy_var = tk.BooleanVar(value=False)
+        self.use_proxy_checkbox = ctk.CTkCheckBox(
+            second_frame,
+            text="启用代理",
+            variable=self.use_proxy_var,
+            command=self.toggle_proxy
+        )
+        self.use_proxy_checkbox.grid(row=0, column=3, padx=(20,5))
         
-        # 日志显示区域移到第三行
+        # 代理地址输入框
+        proxy_label = ctk.CTkLabel(second_frame, text="代理地址:")
+        proxy_label.grid(row=0, column=4, padx=5)
+        
+        self.proxy_entry = ctk.CTkEntry(second_frame, width=200)
+        self.proxy_entry.grid(row=0, column=5, sticky="ew", padx=5)
+        self.proxy_entry.insert(0, "http://127.0.0.1:10809")  # 默认代理地址
+        self.proxy_entry.configure(state="disabled")  # 初始状态禁用
+        
+        # 日志显示区域
         self.log_area = scrolledtext.ScrolledText(
             main_frame,
             font=("Consolas", 10),
@@ -97,7 +117,14 @@ class M3u8DownloaderGUI:
         
         main_frame.grid_rowconfigure(2, weight=1)  # 日志区域可扩展
         main_frame.grid_columnconfigure(0, weight=1)
-        second_frame.grid_columnconfigure(1, weight=1)  # 路径输入框可扩展
+        second_frame.grid_columnconfigure(5, weight=1)  # 代理地址输入框可扩展
+
+    def toggle_proxy(self):
+        """切换代理输入框状态"""
+        if self.use_proxy_var.get():
+            self.proxy_entry.configure(state="normal")
+        else:
+            self.proxy_entry.configure(state="disabled")
 
     def log(self, message):
         """添加日志信息"""
@@ -209,7 +236,18 @@ class M3u8DownloaderGUI:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36'
         }
         try:
-            response = requests.get(url, headers=headers, timeout=10)
+            # 设置代理
+            proxies = None
+            if self.use_proxy_var.get():
+                proxy_url = self.proxy_entry.get().strip()
+                if proxy_url:
+                    proxies = {
+                        'http': proxy_url,
+                        'https': proxy_url
+                    }
+                    self.log(f"使用代理: {proxy_url}")
+
+            response = requests.get(url, headers=headers, proxies=proxies, timeout=10)
             if response.status_code == 200:
                 return response.text
             else:
