@@ -18,6 +18,8 @@
 - 支持HTTP/HTTPS代理
 - 支持批量下载
 
+测试下载链接获得[https://adultiptv.net/](https://adultiptv.net/)
+
 ## 系统要求
 
 - Windows操作系统
