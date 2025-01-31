@@ -276,19 +276,41 @@ class M3u8DownloaderGUI:
             
             # 统计每个路径出现的次数
             dicts = {}
+            ad_paths = []
             for url in dir_url:
-                if "adjump" not in url:  # 忽略广告URL的统计
+                if "adjump" not in url.lower():  # 忽略广告URL的统计
                     dicts[url] = content.count(url)
                     self.log(f"发现路径: {url} (出现{dicts[url]}次)")
+                else:
+                    ad_paths.append(url)
 
             new_content = content
             # 过滤广告
-            if len(dicts) > 1:
-                self.log("检测到多个路径,开始过滤广告...")
-                for ii in dir_url:
-                    if "adjump" in ii:  # 只过滤包含adjump的路径
-                        self.log(f"移除广告路径: {ii}")
-                        new_content = re.sub(f"{ii}.*", '', new_content)
+            if ad_paths:
+                self.log("检测到广告路径，开始过滤...")
+                # 移除包含广告路径的整个片段（包括相关的EXTINF行）
+                lines = new_content.split('\n')
+                filtered_lines = []
+                skip_next = False
+                
+                for line in lines:
+                    if skip_next:
+                        skip_next = False
+                        continue
+                        
+                    if line.startswith('#EXTINF'):
+                        next_line_index = lines.index(line) + 1
+                        if next_line_index < len(lines):
+                            next_line = lines[next_line_index]
+                            if any(ad_path in next_line for ad_path in ad_paths):
+                                skip_next = True
+                                continue
+                    
+                    # 检查当前行是否包含广告路径
+                    if not any(ad_path in line for ad_path in ad_paths):
+                        filtered_lines.append(line)
+                
+                new_content = '\n'.join(filtered_lines)
             
             # 处理ts文件路径
             lines = new_content.split('\n')
@@ -313,7 +335,6 @@ class M3u8DownloaderGUI:
                         else:
                             # 相对路径
                             line = base_url + line
-                    self.log(f"处理ts文件路径: {line}")
                 processed_lines.append(line)
                 
             new_content = '\n'.join(processed_lines)
@@ -321,9 +342,10 @@ class M3u8DownloaderGUI:
             # 去除空行
             new_content = re.sub(r'\n+', '\n', new_content)
             
-            # 保存处理后的内容到日志
-            self.log("\n处理后的m3u8内容:")
-            self.log(new_content)
+            # 保存处理后的内容到日志（仅显示前几行作为示例）
+            content_preview = '\n'.join(new_content.split('\n')[:10])
+            self.log("\n处理后的m3u8内容预览（前10行）:")
+            self.log(content_preview + "\n...")
             
             return new_content
         
