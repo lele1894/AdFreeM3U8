@@ -1,0 +1,1 @@
+python G:\GitHub\AdFreeM3U8\analyze_m3u8copy.py
