@@ -332,6 +332,18 @@ class M3u8DownloaderGUI:
             # 从URL中提取文件名
             filename = url.split('/')[-1].split('.')[0]
             
+            # 如果文件名是index，则尝试从/video/路径中提取文件名
+            if filename.lower() == 'index':
+                video_pattern = r'/video/([^/]+)/'
+                match = re.search(video_pattern, url)
+                if match:
+                    filename = match.group(1)
+                    self.log(f"从video路径提取文件名: {filename}")
+                else:
+                    # 如果没有找到合适的文件名，使用时间戳
+                    filename = f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                    self.log(f"使用默认文件名: {filename}")
+            
             # 使用选择的输出路径
             output_dir = self.path_var.get()
             temp_m3u8 = f"./temp_{filename}.m3u8"
